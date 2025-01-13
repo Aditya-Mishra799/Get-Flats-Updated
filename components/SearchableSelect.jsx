@@ -5,12 +5,16 @@ const SearchableSelect = ({
   label,
   options,
   name,
+  value = "",
+  onChange,
+  onBlur,
   placeholder,
   error,
+  ref : inputRef,
   ...props
 }) => {
   const [searchText, setSearchText] = useState(""); // Text typed in the input
-  const [selectedOption, setSelectedOption] = useState(""); // Currently selected option
+  // const [selectedOption, setSelectedOption] = useState(""); // Currently selected option
   const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Dropdown visibility
   const [highlightedIndex, setHighlightedIndex] = useState(-1); // For keyboard navigation
 
@@ -20,15 +24,15 @@ const SearchableSelect = ({
   // Filter options based on the search term
   const filteredOptions = useMemo(() => {
     if (searchText.trim()) {
-      const regex = new RegExp(escapeRegExp(`^${searchText.trim()}`), "i");
+      const regex = new RegExp(`^${escapeRegExp(searchText.trim())}`, "i");
       return options.filter((option) => regex.test(option));
     }
     return options;
   }, [options, searchText]);
 
   // Handle option selection
-  const handleOptionSelect = (value) => {
-    setSelectedOption(value);
+  const handleOptionSelect = (selectedOption) => {
+    onChange(selectedOption);
     setSearchText(""); // Clear search text
     setIsDropdownOpen(false); // Close dropdown
     setHighlightedIndex(-1); // Reset highlighted index
@@ -70,7 +74,7 @@ const SearchableSelect = ({
       }
 
       // Only clear the search text if an option was selected
-      if (selectedOption || highlightedIndex >= 0) {
+      if (value || highlightedIndex >= 0) {
         setSearchText(""); // Clear search text if a valid selection was made
         setIsDropdownOpen(false); // Close dropdown
       }
@@ -86,6 +90,7 @@ const SearchableSelect = ({
     const closeDropDown = (e) => {
       if (selectRef.current && !selectRef.current.contains(e.target)) {
         setIsDropdownOpen(false);
+        setSearchText("")
       }
     };
     document.addEventListener("mousedown", closeDropDown);
@@ -98,8 +103,8 @@ const SearchableSelect = ({
     <div
       className="flex flex-col gap-2 w-max"
       onDoubleClick={() => {
-        if (selectedOption) {
-          setSelectedOption("");
+        if (value) {
+          onChange("");
           setIsDropdownOpen(true);
         }
       }}
@@ -110,9 +115,9 @@ const SearchableSelect = ({
           {/* Input Field */}
           <input
             placeholder={placeholder}
-            value={selectedOption || searchText} 
+            value={value || searchText} 
             onChange={(e) => setSearchText(e.target.value)}
-            readOnly={Boolean(selectedOption)} 
+            readOnly={Boolean(value)} 
             name={name}
             id={name}
             onKeyDown={handleKeyDown}
@@ -120,13 +125,15 @@ const SearchableSelect = ({
             className={`px-4 py-2 rounded-md border w-full ${
               error ? "border-red-500" : "border-gray-300"
             } focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent`}
+            ref = {inputRef}
+            {...props}
           />
 
           {/* Dropdown */}
           {isDropdownOpen && (
             <div
               ref={dropdownRef}
-              className="absolute w-full top-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg z-20 max-h-40 overflow-y-auto"
+              className="absolute w-full top-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg z-20 max-h-40 overflow-y-auto overflow-x-hidden text-ellipsis"
             >
               {filteredOptions.length > 0 ? (
                 filteredOptions.map((option, index) => (
@@ -151,11 +158,11 @@ const SearchableSelect = ({
           )}
 
           {/* Clear Selection Button */}
-          {selectedOption && (
+          {value && (
             <button
               type="button"
               onClick={() => {
-                setSelectedOption(""); // Clear selected option
+                onChange(""); // Clear selected option
                 setIsDropdownOpen(true); // Reopen dropdown
               }}
               className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-black"

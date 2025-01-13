@@ -40,7 +40,7 @@ const ProgressBar = ({ steps, currentStep, completedSteps }) => {
   }, [currentStep, steps.length, completedSteps]); 
 
   return (
-    <div className="relative w-full">
+    <div className="relative w-full mt-4">
       {/* Progress bar */}
       <div
         className="relative h-1 bg-gray-300"
