@@ -44,7 +44,7 @@ const StepperForm = ({ stepsData = [] }) => {
     <FormProvider {...methods}>
       <form
         onSubmit={methods.handleSubmit(handleFormSubmit)}
-        className="max-w-3xl mx-auto p-4  lg:p-8 bg-white shadow-lg rounded-lg lg-w-[500px]"
+        className="max-w-3xl mx-auto p-4  lg:p-8 bg-white shadow-lg  rounded-lg md:max-w-[500px] lg:max-w-[600px] pt-8"
       >
         {/* Progress Bar */}
         <ProgressBar
@@ -54,12 +54,12 @@ const StepperForm = ({ stepsData = [] }) => {
         />
 
         {/* Step Title */}
-        <h2 className="text-xl font-semibold text-gray-800 text-center mt-8">
+        <h2 className="text-xl font-base text-gray-800 text-center mt-8">
           {stepsData[currentStep].title}
         </h2>
 
         {/* Step Content */}
-        <div className="my-8 flex flex-wrap gap-2">{stepsData[currentStep].page}</div>
+        <div className="my-8 flex flex-wrap gap-2 justify-stretch  items-center w-fit mx-auto h-full">{stepsData[currentStep].page}</div>
 
         {/* Notes */}
         <p className="text-sm text-gray-500">{stepsData[currentStep].note}</p>

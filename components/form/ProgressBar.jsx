@@ -38,7 +38,6 @@ const ProgressBar = ({ steps, currentStep, completedSteps }) => {
     window.addEventListener("resize", resizeProgressBar);
     return () => window.removeEventListener("resize", resizeProgressBar); // Cleanup on unmount
   }, [currentStep, steps.length, completedSteps]); 
-
   return (
     <div className="relative w-full mt-4">
       {/* Progress bar */}
@@ -48,7 +47,7 @@ const ProgressBar = ({ steps, currentStep, completedSteps }) => {
       >
         {/* Progress fill */}
         <div
-          className="absolute h-1 bg-green-400"
+          className="absolute h-1 bg-slate-600"
           style={{ width: `${progressFillLen}px` }} // Dynamically set progress fill width
         />
       </div>
@@ -62,16 +61,14 @@ const ProgressBar = ({ steps, currentStep, completedSteps }) => {
             ref={setPointsRef} // Set the ref for each step
           >
             {/* Step Circle */}
+           
             <div
-              className={`flex items-center justify-center w-10 h-10 rounded-full 
-                ${completedSteps.includes(index) ? "bg-green-500" : "bg-gray-300"} 
-                ${index === currentStep ? "border-4 border-blue-500" : ""}`}
+              className={`flex items-center justify-center w-10 h-10 rounded-full  
+                ${completedSteps.includes(index) ? "bg-slate-600" : "bg-gray-300"} 
+                ${index === currentStep ? "border-4 border-gray-500" : ""} ${completedSteps.includes(index) ? "text-white" : "text-black"}`}
             >
-              {completedSteps.includes(index) ? (
-                <span className="text-white">✔</span>
-              ) : (
-                step.icon
-              )}
+                {step.icon}
+              
             </div>
           </div>
         ))}

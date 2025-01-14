@@ -13,7 +13,7 @@ import {
 } from "@/data/ListingOptions";
 import SearchableSelect from "@/components/SearchableSelect";
 import SearchableMultiSelect from "@/components/SearchableMultiSelect";
-import { Contact, HousePlus, MessageSquareText } from "lucide-react";
+import { Contact, HousePlus, Image, MessageSquareText } from "lucide-react";
 import TextArea from "@/components/TextArea";
 import ImageUploader from "@/components/ImageUploader";
 
@@ -24,6 +24,7 @@ const pages = {
       label: "Property Title",
       type: "text",
       component: Input,
+      fullWidth : true,
     },
     {
       name: "listing_type",
@@ -40,19 +41,22 @@ const pages = {
       component: SegmentedSingleSelect,
     },
     {
+      name: "amenities",
+      label: "Amenities",
+      defaultValue: [],
+      options: amenitiesOptions,
+      component: SearchableMultiSelect,
+      fullWidth : true,
+      className : "max-w-[500px]",
+    },
+    {
       name: "property_type",
       label: "Property Type",
       defaultValue: "",
       options: propertyOptions,
       component: SearchableSelect,
     },
-    {
-      name: "amenities",
-      label: "Amenities",
-      defaultValue: [],
-      options: amenitiesOptions,
-      component: SearchableMultiSelect,
-    },
+  
     {
       name: "bathrooms",
       label: "Bathrooms",
@@ -95,8 +99,11 @@ const pages = {
       label: "Description",
       type: "text",
       component: TextArea,
+      className: "max-w-[400px]",
       cols : 60,
       rows : 8,
+      defaultValue : "",
+      fullWidth : true,
     },
   ],
   pricingAndContacts: [
@@ -114,10 +121,26 @@ const pages = {
       defaultValue: "0",
     },
   ],
+  images : [{
+    name: "property_images",
+    label: "Add Images",
+    component: ImageUploader,
+    className: "max-w-[400px]",
+    defaultValue : [],
+    fullWidth : true,
+}],
 };
 
 const AddListingForm = () => {
   const stepsData = [
+    {
+      id: 1,
+      title: "Basic Details",
+      icon: <HousePlus />,
+      schema: stepSchemas.basicDetails,
+      page: <Step fields={pages["basicDetails"]} />,
+      note: "Provide the basic details of property",
+    },
     {
       id: 2,
       title: "Description",
@@ -127,20 +150,19 @@ const AddListingForm = () => {
       note: "Enter your current description details accurately.",
     },
     {
-      id: 1,
-      title: "Personal Info",
-      icon: <HousePlus />,
-      schema: stepSchemas.basicDetails,
-      page: <Step fields={pages["basicDetails"]} />,
-      note: "Provide the basic details of property",
-    },
-    
-    {
       id: 3,
       title: "Pricing and Contacts",
       icon: <Contact />,
       schema: stepSchemas.pricingAndContacts,
       page: <Step fields={pages["pricingAndContacts"]} />,
+      note: "Review your information before submitting.",
+    },
+    {
+      id: 4,
+      title: "Propert Images",
+      icon: <Image />,
+      schema: {},
+      page: <Step fields={pages["images"]} />,
       note: "Review your information before submitting.",
     },
   ];

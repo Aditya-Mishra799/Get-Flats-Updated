@@ -36,6 +36,7 @@ const SearchableSelect = ({
     setSearchText(""); // Clear search text
     setIsDropdownOpen(false); // Close dropdown
     setHighlightedIndex(-1); // Reset highlighted index
+    onBlur()
   };
 
   // Scroll to the highlighted option when navigating with Arrow keys
@@ -77,10 +78,12 @@ const SearchableSelect = ({
       if (value || highlightedIndex >= 0) {
         setSearchText(""); // Clear search text if a valid selection was made
         setIsDropdownOpen(false); // Close dropdown
+        onBlur()
       }
     } else if (e.key === "Escape") {
       // Close the dropdown
       setIsDropdownOpen(false);
+      onBlur()
     }
   };
 
@@ -91,6 +94,7 @@ const SearchableSelect = ({
       if (selectRef.current && !selectRef.current.contains(e.target)) {
         setIsDropdownOpen(false);
         setSearchText("")
+        onBlur()
       }
     };
     document.addEventListener("mousedown", closeDropDown);
@@ -101,7 +105,7 @@ const SearchableSelect = ({
 
   return (
     <div
-      className="flex flex-col gap-2 w-max"
+      className="flex flex-col gap-2 w-full"
       onDoubleClick={() => {
         if (value) {
           onChange("");

@@ -76,7 +76,7 @@ const ImageUploader = ({
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full space-y-2">
       {label && (
         <label htmlFor={name} className="font-medium text-slate-700">
           {label}
@@ -85,7 +85,7 @@ const ImageUploader = ({
       <div
         className={`flex flex-col justify-center items-center cursor-pointer border-2 border-dashed px-12 py-8 rounded-md transition-all duration-200 
           ${dragging ? "bg-slate-100 border-slate-800" : "bg-white border-slate-600"}
-          ${error || fileErrors.length ? "border-red-500" : ""}`}
+          ${error || fileErrors.length ? "border-red-500" : ""} ${className}`}
         onClick={handleClick}
         onDragOver={(e) => e.preventDefault()}
         onDrop={handleDrop}
@@ -108,19 +108,12 @@ const ImageUploader = ({
           file types.
         </p>
       </div>
-      {/* {fileErrors.length > 0 && (
-        <ul className="mt-2 text-sm text-red-500">
-          {fileErrors.map((err, idx) => (
-            <li key={idx}>{err}</li>
-          ))}
-        </ul>
-      )} */}
       {value.length > 0 && (
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-4 flex flex-col flex-wrap gap-2">
           {value.map((file, idx) => (
             <div
               key={idx}
-              className="flex items-center gap-2 border border-gray-300 rounded-md p-2 text-sm"
+              className="flex items-center justify-between gap-2 border border-gray-300 rounded-md p-2 text-sm"
             >
               <span className="truncate max-w-xs">{file.name}</span>
               <button

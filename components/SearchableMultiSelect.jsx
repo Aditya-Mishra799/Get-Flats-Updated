@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import React, { useMemo, useRef, useEffect, useState } from "react";
 import { escapeRegExp } from "@/utils/basicUtils";
 
@@ -11,7 +11,8 @@ const SearchableMultiSelect = ({
   onBlur,
   placeholder = "Select options...",
   error,
-  ref : inputRef,
+  ref: inputRef,
+  className,
   ...props
 }) => {
   const [inputValue, setInputValue] = useState(""); // Search input value
@@ -19,11 +20,13 @@ const SearchableMultiSelect = ({
   const [highlightedIndex, setHighlightedIndex] = useState(-1); // For keyboard navigation
 
   const dropdownRef = useRef(null);
-  const selectRef = useRef(null)
+  const selectRef = useRef(null);
 
   // Filter available options based on search input
   const filteredOptions = useMemo(() => {
-    const availableOptions = options.filter((option) => !value.includes(option));
+    const availableOptions = options.filter(
+      (option) => !value.includes(option)
+    );
 
     if (inputValue.trim()) {
       const regex = new RegExp(`^${escapeRegExp(inputValue.trim())}`, "i");
@@ -78,6 +81,7 @@ const SearchableMultiSelect = ({
     const handleClickOutside = (e) => {
       if (selectRef.current && !selectRef.current.contains(e.target)) {
         setIsDropdownOpen(false);
+        onBlur()
       }
     };
 
@@ -88,15 +92,20 @@ const SearchableMultiSelect = ({
   }, []);
 
   return (
-    <div className="flex flex-col gap-2 w-full">
-      {label && <label htmlFor={name} className="font-medium">{label}</label>}
-      <div className="relative" ref = {selectRef}>
+    <div className="flex flex-col gap-2 w-fit">
+      {label && (
+        <label htmlFor={name} className="font-medium">
+          {label}
+        </label>
+      )}
+      <div className="relative" ref={selectRef}>
         {/* Input Field */}
         <div
           className={`flex flex-wrap items-center gap-2 px-2 py-1 border rounded-md focus-within:ring-2 ${
-            error ? "border-red-500 ring-red-300" : "border-gray-300 focus-within:ring-slate-500"
-          }`}
-          
+            error
+              ? "border-red-500 ring-red-300"
+              : "border-gray-300 focus-within:ring-slate-500"
+          } ${className}`}
         >
           {value.map((item) => (
             <div
