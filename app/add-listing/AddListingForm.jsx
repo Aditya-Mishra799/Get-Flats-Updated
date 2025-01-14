@@ -14,6 +14,8 @@ import {
 import SearchableSelect from "@/components/SearchableSelect";
 import SearchableMultiSelect from "@/components/SearchableMultiSelect";
 import { Contact, HousePlus, MessageSquareText } from "lucide-react";
+import TextArea from "@/components/TextArea";
+import ImageUploader from "@/components/ImageUploader";
 
 const pages = {
   basicDetails: [
@@ -92,7 +94,9 @@ const pages = {
       name: "property_description",
       label: "Description",
       type: "text",
-      component: Input,
+      component: TextArea,
+      cols : 60,
+      rows : 8,
     },
   ],
   pricingAndContacts: [
@@ -115,14 +119,6 @@ const pages = {
 const AddListingForm = () => {
   const stepsData = [
     {
-      id: 1,
-      title: "Personal Info",
-      icon: <HousePlus />,
-      schema: stepSchemas.basicDetails,
-      page: <Step fields={pages["basicDetails"]} />,
-      note: "Provide the basic details of property",
-    },
-    {
       id: 2,
       title: "Description",
       icon: <MessageSquareText />,
@@ -130,6 +126,15 @@ const AddListingForm = () => {
       page: <Step fields={pages["description"]} />,
       note: "Enter your current description details accurately.",
     },
+    {
+      id: 1,
+      title: "Personal Info",
+      icon: <HousePlus />,
+      schema: stepSchemas.basicDetails,
+      page: <Step fields={pages["basicDetails"]} />,
+      note: "Provide the basic details of property",
+    },
+    
     {
       id: 3,
       title: "Pricing and Contacts",
