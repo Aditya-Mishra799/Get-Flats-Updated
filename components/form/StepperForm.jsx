@@ -50,6 +50,7 @@ const StepperForm = ({ stepsData = [] }) => {
         <ProgressBar
           steps={stepsData}
           currentStep={currentStep}
+          completedSteps = {[...Array(currentStep).keys()]}
         />
 
         {/* Step Title */}
