@@ -10,12 +10,14 @@ const Button = ({
   loadingText = "Submitting...",
   className = "",
   error = false,
+  type = "button",
   ...rest
 }) => {
   return (
     <button
       onClick={onClick}
       disabled={disabled || loading}
+      type = {type}
       {...rest}
       className={clsx(
         "relative flex items-center justify-center px-4 py-2 text-base font-medium rounded-md transition-transform duration-300 focus:outline-none",
