@@ -1,35 +1,44 @@
+import User from "@/models/user";
 import CredentialsProvider from "next-auth/providers/credentials";
 
 import GoogleProvider from "next-auth/providers/google";
+import { NextResponse } from "next/server";
 const authOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
       credentials: {
-        name: { label: "Full Name", type: "text", placeholder: "your name" },
         email: { label: "Email", type: "email", placeholder: "your email" },
         password: {
           label: "Password",
           type: "password",
           placeholder: "your password",
         },
-        confirmPassword: {
-          label: "Confirm Password",
-          type: "password",
-          placeholder: "confirm password",
-        },
       },
       async authorize(credentials, req) {
-        const user = {
-          id: 1,
-          email: "aditya@gmail.com",
-          password: "121aditya",
-        };
-        console.log("user data authorize", credentials, req);
-        if (credentials.email === user.email) {
-          return user;
+        try {
+          const {email, password} = credentials
+          if(!email || !password){
+            throw new Error("Email and password are required.");
+          }
+          const user = await User.findOne({email : email})
+          if(!user){
+            throw new Error("User not authorized. Email not found.");
+          }
+          const isPasswordValid = await user.comparePassword(password);
+          if(!isPasswordValid){
+            throw new Error("Invalid email or password.");
+          }
+          return {
+            id : user._id,
+            email: user.email,
+            name : user.name,
+            picture : user.profileImageUrl,
+          }
+        } catch (error) {
+          console.error(error)
+          return null;
         }
-        throw new Error("User not authorized")
       },
     }),
   ],
@@ -42,9 +51,13 @@ const authOptions = {
     strategy: "jwt",
   },
   callbacks: {
-    async jwt(params) {
-      console.log("jwt params", params);
-      return;
+    async jwt({token, user, account, isNewUser, trigger}) {
+      if(user){
+        token.id = user.id
+        token.picture = user.picture
+      } 
+      console.log(token)  
+      return token;
     },
     async session(params) {
       console.log("session params", params);
