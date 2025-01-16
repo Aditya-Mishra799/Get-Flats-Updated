@@ -6,7 +6,7 @@ import ProfileMenu from './ProfileMenu';
 const NavLinks = ({user}) => {
     const links = [
         { title: 'Home', href: '/', visibility: true },
-        { title: 'Login/Register', href: '/auth', visibility: !user.isLoggedIn },
+        { title: 'Login/Register', href: '/auth/signin', visibility: !user.isLoggedIn },
         { 
           title: 'Profile', 
         //   href: '/profile', 

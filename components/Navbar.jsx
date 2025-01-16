@@ -11,7 +11,7 @@ const Navbar = () => {
   const toggleSidebar = () => setSidebarOpen(!isSidebarOpen);
 
   // Temporary user state
-  const user = { isLoggedIn: true, name: 'Aditya Mishra', avatar: 'https://via.placeholder.com/150' };
+  const user = { isLoggedIn: false, name: 'Aditya Mishra', avatar: 'https://via.placeholder.com/150' };
 
   return (
     <nav className="bg-white p-4 shadow-md">

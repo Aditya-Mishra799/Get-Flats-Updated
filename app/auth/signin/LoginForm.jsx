@@ -2,19 +2,19 @@
 import Button from "@/components/Button";
 import Step from "@/components/form/Step";
 import { zodResolver } from "@hookform/resolvers/zod";
-import React from "react";
+import React, { useEffect } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { signIn } from "next-auth/react";
 import { LoginFormInputs, RegisterFormInputs } from "../formInput";
 import { LoginFormValidationSchema } from "@/FormValidationSchema/LoginUser";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import axios from "axios";
+
 
 const LoginForm = () => {
-  const router = useRouter();
-  const searchParams = useSearchParams()
+  const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/";
-  console.log(router, callbackUrl)
 
   const methods = useForm({
     mode: "onBlur",
@@ -22,7 +22,7 @@ const LoginForm = () => {
   });
 
   const handleFormSubmit = async (data) => {
-    await signIn("credentials", { ...data, redirect: true, callbackUrl });
+    await signIn("credentials", { ...data,  callbackUrl});
     methods.reset();
   };
   return (

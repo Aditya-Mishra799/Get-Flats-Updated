@@ -1,3 +1,4 @@
+import connectToDB from "@/lib/mongodb";
 import User from "@/models/user";
 import CredentialsProvider from "next-auth/providers/credentials";
 
@@ -17,6 +18,7 @@ const authOptions = {
       },
       async authorize(credentials, req) {
         try {
+          await connectToDB()
           const {email, password} = credentials
           if(!email || !password){
             throw new Error("Email and password are required.");
@@ -56,12 +58,14 @@ const authOptions = {
         token.id = user.id
         token.picture = user.picture
       } 
-      console.log(token)  
       return token;
     },
-    async session(params) {
-      console.log("session params", params);
-      return;
+    async session({session, token}) {
+      if(token){
+        session.user.id = token.id
+        session.user.image = token.picture
+      }
+      return session;
     },
     secret: process.env.NEXTAUTH_SECRET,
   },
