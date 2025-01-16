@@ -25,7 +25,7 @@ export const RegisterFormInputs = [
     {
       name: "confirmPassword",
       label: "Confirm Password",
-      type: "Password",
+      type: "password",
       component: Input,
       fullWidth : true,
     },
