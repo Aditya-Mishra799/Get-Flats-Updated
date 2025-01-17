@@ -17,6 +17,7 @@ import { Contact, HousePlus, Image, MessageSquareText } from "lucide-react";
 import TextArea from "@/components/TextArea";
 import ImageUploader from "@/components/ImageUploader";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 
 const pages = {
   basicDetails: [
@@ -134,7 +135,8 @@ const pages = {
   ],
 };
 
-const AddListingForm = ({ id }) => {
+const AddListingForm = ({ id, user }) => {
+  const router = useRouter()
   const stepsData = [
     {
       id: 1,
@@ -169,21 +171,49 @@ const AddListingForm = ({ id }) => {
       note: "Review your information before submitting.",
     },
   ];
-  const handleSaveForm = async (page, data) => {
+  const handleSaveForm = async (currentPage, pageData, title) => {
     try {
-      await axios.post("/api/forms/save", {
+      const res = await axios.post("/api/forms/save", {
         id: id,
-        userId: null,
-        page: page,
-        data: data,
+        userId: user.id,
+        currentPage: currentPage,
+        pageData: pageData,
+        title: title,
+        type: "listing",
       });
+      if(res.data?.redirectUrl){
+        router.push(res.data?.redirectUrl)
+      }
     } catch (error) {
       console.error(error);
     }
   };
+  const fetchCurrentPageData = async (page) => {
+    try {
+      if (id !== "new") {
+        const res = await axios.get(`/api/forms/${id}`, {
+          params: { page: page },
+        });
+        return {
+          pageData: res.data.pageData,
+          title: res?.data.title,
+          currentPage: res?.data.currentPage,
+        };
+      }
+      return { pageData: {}, title: "", currentPage: 0 };
+    } catch (error) {
+      console.error(error);
+      return { pageData: {}, title: "", currentPage : 0 }; // Consistent return structure
+    }
+  };
   return (
     <div>
-      <StepperForm stepsData={stepsData} />
+      <StepperForm
+        stepsData={stepsData}
+        handleSaveForm={handleSaveForm}
+        titleField={"property_title"}
+        fetchCurrentPageData={fetchCurrentPageData}
+      />
     </div>
   );
 };

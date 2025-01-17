@@ -1,13 +1,14 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import ProgressBar from "./ProgressBar";
 import Button from "../Button";
 
-const StepperForm = ({ stepsData = [], handleSave }) => {
+const StepperForm = ({ stepsData = [], handleSaveForm, titleField, fetchCurrentPageData }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [pagesData, setPagesData] = useState({});
+  const [title, setTitle] = useState("");
   const methods = useForm({
     resolver: zodResolver(stepsData[currentStep].schema),
     mode: "onBlur",
@@ -15,17 +16,35 @@ const StepperForm = ({ stepsData = [], handleSave }) => {
 
   const isLastStep = currentStep === stepsData.length - 1;
 
+  useEffect(()=>{
+    const  fetchDefaultValues = async ()=>{
+      const {pageData, title, currentPage} = await fetchCurrentPageData(stepsData[currentStep].title)
+      methods.reset(pageData); 
+      setTitle(title)
+      if(currentPage !== 0)
+        setCurrentStep(currentPage + 1 || 0)
+    }
+    fetchDefaultValues()
+  }, [])
+
   const handleNext = async (e) => {
     e.preventDefault();
     const values = methods.getValues();
+    if (values[titleField]) {
+      setTitle(values[titleField]);
+    }
     setPagesData((prev) => ({
       ...prev,
       [stepsData[currentStep].title]: values,
     }));
     Object.entries(values).map(([key, value]) => methods.setValue(key, value));
-    const isValid = await methods.trigger(); 
+    const isValid = await methods.trigger();
     if (isValid) {
-      await handleSave(stepsData[currentStep].title, values)
+      await handleSaveForm(
+        currentStep,
+        values,
+        title || values[titleField]
+      );
       setCurrentStep((prev) => prev + 1);
     }
   };
@@ -51,7 +70,7 @@ const StepperForm = ({ stepsData = [], handleSave }) => {
         <ProgressBar
           steps={stepsData}
           currentStep={currentStep}
-          completedSteps = {[...Array(currentStep).keys()]}
+          completedSteps={[...Array(currentStep).keys()]}
         />
 
         {/* Step Title */}
@@ -60,7 +79,9 @@ const StepperForm = ({ stepsData = [], handleSave }) => {
         </h2>
 
         {/* Step Content */}
-        <div className="my-8 flex flex-wrap gap-2 justify-stretch  items-center w-fit mx-auto h-full">{stepsData[currentStep].page}</div>
+        <div className="my-8 flex flex-wrap gap-2 justify-stretch  items-center w-fit mx-auto h-full">
+          {stepsData[currentStep].page}
+        </div>
 
         {/* Notes */}
         <p className="text-sm text-gray-500">{stepsData[currentStep].note}</p>
@@ -79,14 +100,9 @@ const StepperForm = ({ stepsData = [], handleSave }) => {
 
           {/* Next or Submit Button */}
           {isLastStep ? (
-            <Button type="submit" >
-              Submit
-            </Button>
+            <Button type="submit">Submit</Button>
           ) : (
-            <Button
-              onClick={handleNext}
-              type="button" 
-            >
+            <Button onClick={handleNext} type="button">
               Next
             </Button>
           )}

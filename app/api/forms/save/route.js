@@ -1,38 +1,69 @@
-import ListingFormData from "@/models/listingsFormData";
+import connectToDB from "@/lib/mongodb";
+import FormData from "@/models/formData";
 import { NextResponse } from "next/server";
 
-export async function POST(req) {
+export async function POST(req, res) {
   try {
+    await connectToDB()
     const formData = await req.json();
-    const { id, userId, page, data } = formData;
-
-    if (!page) {
-      return NextResponse.json({ error: "Invalid Inputs" }, { status: 400 });
+    let { currentPage, pageData, title, type, id, userId } = formData;
+    currentPage = parseInt(currentPage)
+    // Validate required fields
+    if ( isNaN(currentPage) || currentPage < 0 || !pageData) {
+      return NextResponse.json(
+        { error: "Invalid input: 'currentPage' and 'pageData' are required." },
+        { status: 400 }
+      );
     }
 
-    if (id) {
-      const form = await ListingFormData.findById(id);
-      if (!form) { 
-        return NextResponse.json({ error: "No such form found" }, { status: 404 });
+    // If `id` is provided, update the existing form
+    if (id &&  id !== "new") {
+      const form = await FormData.findById(id);
+      if (!form) {
+        return NextResponse.json(
+          { error: `Form with ID ${id} not found.` },
+          { status: 404 }
+        );
       }
 
-      form[page] = data;
+      form.data = form.data || {};
+      form.data = pageData; 
+      form.currentPage = Math.max(currentPage, form.currentPage)
       await form.save();
-      return NextResponse.json({ message: "Form data updated successfully" }, { status: 200 }); // Status code 200 for successful update
-    } else {
-      const form = new ListingFormData();
-      if (userId) {
-        form.userId = userId;
-      }
 
-      form[page] = data;
-
-      await form.save();
-      
-      return NextResponse.redirect(`/add-listing/${form._id}`); 
+      return NextResponse.json(
+        {
+          message: "Form currentPage data updated successfully.",
+          formId: form._id,
+        },
+        { status: 200 }
+      );
     }
+    // If `id` is not provided, create a new form
+    if (!title || !type) {
+      return NextResponse.json(
+        { error: "Invalid input: 'title' and 'type' are required for new forms." },
+        { status: 400 }
+      );
+    }
+
+    const newForm = new FormData({
+      userId: userId || null,
+      title,
+      type,
+      data: {  ...pageData },
+    });
+
+    await newForm.save();
+    return NextResponse.json(
+      { message: "Form created successfully", redirectUrl: `/add-listing/${newForm._id}` },
+      { status: 200 }
+    );
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    console.error("Error saving form data:", error);
+    return NextResponse.json(
+      { error: "An internal server error occurred. Please try again later." },
+      { status: 500 }
+    );
   }
 }
