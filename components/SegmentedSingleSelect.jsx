@@ -1,4 +1,5 @@
 import React from "react";
+import Label from "./Label";
 
 const SegmentedSingleSelect = ({
   name,
@@ -13,11 +14,7 @@ const SegmentedSingleSelect = ({
 }) => {
   return (
     <div className="flex flex-col gap-2 w-max">
-      {label && (
-        <label htmlFor={name} className="font-medium text-slate-700">
-          {label}
-        </label>
-      )}
+      <Label label={label} htmlFor={name}/>
       <div
         className="w-full border border-gray-300 rounded-md overflow-x-auto flex justify-center items-center text-sm"
         ref={ref}

@@ -1,6 +1,7 @@
 "use client";
 import React, { useMemo, useRef, useEffect, useState } from "react";
 import { escapeRegExp } from "@/utils/basicUtils";
+import Label from "./Label";
 
 const SearchableMultiSelect = ({
   label,
@@ -81,7 +82,7 @@ const SearchableMultiSelect = ({
     const handleClickOutside = (e) => {
       if (selectRef.current && !selectRef.current.contains(e.target)) {
         setIsDropdownOpen(false);
-        onBlur()
+        onBlur();
       }
     };
 
@@ -93,11 +94,7 @@ const SearchableMultiSelect = ({
 
   return (
     <div className="flex flex-col gap-2 w-fit">
-      {label && (
-        <label htmlFor={name} className="font-medium">
-          {label}
-        </label>
-      )}
+      <Label label={label} htmlFor={name} />
       <div className="relative" ref={selectRef}>
         {/* Input Field */}
         <div

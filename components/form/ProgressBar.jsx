@@ -63,9 +63,9 @@ const ProgressBar = ({ steps, currentStep, completedSteps }) => {
             {/* Step Circle */}
            
             <div
-              className={`flex items-center justify-center w-10 h-10 rounded-full  
+              className={`flex items-center justify-center w-6 h-6 rounded-full  text-xs 
                 ${completedSteps.includes(index) ? "bg-slate-600" : "bg-gray-300"} 
-                ${index === currentStep ? "border-4 border-gray-500" : ""} ${completedSteps.includes(index) ? "text-white" : "text-black"}`}
+                ${index === currentStep ? "border-2 border-gray-500" : ""} ${completedSteps.includes(index) ? "text-white" : "text-black"}`}
             >
                 {step.icon}
               

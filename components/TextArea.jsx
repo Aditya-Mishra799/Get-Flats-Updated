@@ -1,4 +1,5 @@
 import React from "react";
+import Label from "./Label";
 
 const TextArea = ({
   name,
@@ -15,13 +16,7 @@ const TextArea = ({
 }) => {
   return (
     <div className="flex flex-col gap-2 w-full">
-      {label && (
-        <label
-          htmlFor={name}
-        >
-          {label}
-        </label>
-      )}
+       <Label label={label} htmlFor={name}/>
       <textarea
         id={name}
         name={name}

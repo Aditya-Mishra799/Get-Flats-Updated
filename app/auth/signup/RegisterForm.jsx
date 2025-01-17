@@ -8,17 +8,20 @@ import { FormProvider, useForm } from "react-hook-form";
 import { RegisterFormInputs } from "../formInput";
 import Link from "next/link";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 
 const RegisterForm = () => {
   const methods = useForm({
     mode: "onBlur",
     resolver: zodResolver(RegisterFormValidationSchema),
   });
+  const router = useRouter();
   const signUpUser = async (data) => {
     try {
       const response = await axios.post("/api/auth/signup", data);
+      router.push("/auth/signin");
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
   const handleFormSubmit = async (data) => {

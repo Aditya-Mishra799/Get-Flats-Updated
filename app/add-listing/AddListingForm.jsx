@@ -16,6 +16,7 @@ import SearchableMultiSelect from "@/components/SearchableMultiSelect";
 import { Contact, HousePlus, Image, MessageSquareText } from "lucide-react";
 import TextArea from "@/components/TextArea";
 import ImageUploader from "@/components/ImageUploader";
+import axios from "axios";
 
 const pages = {
   basicDetails: [
@@ -24,7 +25,7 @@ const pages = {
       label: "Property Title",
       type: "text",
       component: Input,
-      fullWidth : true,
+      fullWidth: true,
     },
     {
       name: "listing_type",
@@ -46,8 +47,8 @@ const pages = {
       defaultValue: [],
       options: amenitiesOptions,
       component: SearchableMultiSelect,
-      fullWidth : true,
-      className : "max-w-[500px]",
+      fullWidth: true,
+      className: "max-w-[500px]",
     },
     {
       name: "property_type",
@@ -56,7 +57,7 @@ const pages = {
       options: propertyOptions,
       component: SearchableSelect,
     },
-  
+
     {
       name: "bathrooms",
       label: "Bathrooms",
@@ -100,10 +101,10 @@ const pages = {
       type: "text",
       component: TextArea,
       className: "max-w-[400px]",
-      cols : 60,
-      rows : 8,
-      defaultValue : "",
-      fullWidth : true,
+      cols: 60,
+      rows: 8,
+      defaultValue: "",
+      fullWidth: true,
     },
   ],
   pricingAndContacts: [
@@ -121,22 +122,24 @@ const pages = {
       defaultValue: "0",
     },
   ],
-  images : [{
-    name: "property_images",
-    label: "Add Images",
-    component: ImageUploader,
-    className: "max-w-[400px]",
-    defaultValue : [],
-    fullWidth : true,
-}],
+  images: [
+    {
+      name: "property_images",
+      label: "Add Images",
+      component: ImageUploader,
+      className: "max-w-[400px]",
+      defaultValue: [],
+      fullWidth: true,
+    },
+  ],
 };
 
-const AddListingForm = () => {
+const AddListingForm = ({ id }) => {
   const stepsData = [
     {
       id: 1,
       title: "Basic Details",
-      icon: <HousePlus />,
+      icon: <HousePlus size={14} />,
       schema: stepSchemas.basicDetails,
       page: <Step fields={pages["basicDetails"]} />,
       note: "Provide the basic details of property",
@@ -144,7 +147,7 @@ const AddListingForm = () => {
     {
       id: 2,
       title: "Description",
-      icon: <MessageSquareText />,
+      icon: <MessageSquareText size={14} />,
       schema: stepSchemas.description,
       page: <Step fields={pages["description"]} />,
       note: "Enter your current description details accurately.",
@@ -152,7 +155,7 @@ const AddListingForm = () => {
     {
       id: 3,
       title: "Pricing and Contacts",
-      icon: <Contact />,
+      icon: <Contact size={14} />,
       schema: stepSchemas.pricingAndContacts,
       page: <Step fields={pages["pricingAndContacts"]} />,
       note: "Review your information before submitting.",
@@ -160,12 +163,24 @@ const AddListingForm = () => {
     {
       id: 4,
       title: "Propert Images",
-      icon: <Image />,
+      icon: <Image size={14} />,
       schema: {},
       page: <Step fields={pages["images"]} />,
       note: "Review your information before submitting.",
     },
   ];
+  const handleSaveForm = async (page, data) => {
+    try {
+      await axios.post("/api/forms/save", {
+        id: id,
+        userId: null,
+        page: page,
+        data: data,
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  };
   return (
     <div>
       <StepperForm stepsData={stepsData} />

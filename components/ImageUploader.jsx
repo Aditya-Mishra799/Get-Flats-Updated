@@ -1,5 +1,6 @@
 import { Upload } from "lucide-react";
 import React, { useRef, useState } from "react";
+import Label from "./Label";
 
 const ImageUploader = ({
   name,
@@ -77,11 +78,7 @@ const ImageUploader = ({
 
   return (
     <div className="w-full space-y-2">
-      {label && (
-        <label htmlFor={name} className="font-medium text-slate-700">
-          {label}
-        </label>
-      )}
+       <Label label={label} htmlFor={name}/>
       <div
         className={`flex flex-col justify-center items-center cursor-pointer border-2 border-dashed px-12 py-8 rounded-md transition-all duration-200 
           ${dragging ? "bg-slate-100 border-slate-800" : "bg-white border-slate-600"}

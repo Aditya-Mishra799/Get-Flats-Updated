@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import ProgressBar from "./ProgressBar";
 import Button from "../Button";
 
-const StepperForm = ({ stepsData = [] }) => {
+const StepperForm = ({ stepsData = [], handleSave }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [pagesData, setPagesData] = useState({});
   const methods = useForm({
@@ -23,9 +23,10 @@ const StepperForm = ({ stepsData = [] }) => {
       [stepsData[currentStep].title]: values,
     }));
     Object.entries(values).map(([key, value]) => methods.setValue(key, value));
-    const isValid = await methods.trigger(); // Validate current step
+    const isValid = await methods.trigger(); 
     if (isValid) {
-      setCurrentStep((prev) => prev + 1); // Go to next step
+      await handleSave(stepsData[currentStep].title, values)
+      setCurrentStep((prev) => prev + 1);
     }
   };
 
@@ -36,8 +37,8 @@ const StepperForm = ({ stepsData = [] }) => {
   const handleFormSubmit = async (data) => {
     alert("Form submitted successfully!");
     setPagesData((prev) => ({ ...prev, [stepsData[currentStep].title]: data }));
-    setCurrentStep(0); // Reset to the first step
-    methods.reset(); // Reset form values
+    setCurrentStep(0);
+    methods.reset();
   };
 
   return (

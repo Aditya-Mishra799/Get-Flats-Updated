@@ -4,13 +4,14 @@ import ProfileMenu from './ProfileMenu';
 
 
 const NavLinks = ({user}) => {
+  console.log(user)
     const links = [
         { title: 'Home', href: '/', visibility: true },
-        { title: 'Login/Register', href: '/auth/signin', visibility: !user.isLoggedIn },
+        { title: 'Login/Register', href: '/auth/signin', visibility: !Boolean(user) },
         { 
           title: 'Profile', 
         //   href: '/profile', 
-          visibility: user.isLoggedIn,
+          visibility: Boolean(user),
           innerComponent: <ProfileMenu  user={ user }/>
         },
         { title: 'About', href: '/about', visibility: true },

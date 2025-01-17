@@ -1,5 +1,6 @@
 import { escapeRegExp } from "@/utils/basicUtils";
 import React, { useMemo, useState, useRef, useEffect } from "react";
+import Label from "./Label";
 
 const SearchableSelect = ({
   label,
@@ -113,7 +114,7 @@ const SearchableSelect = ({
         }
       }}
     >
-      {label && <label htmlFor={name}>{label}</label>}
+      <Label label={label} htmlFor={name}/>
       <div ref={selectRef}>
         <div className="relative">
           {/* Input Field */}

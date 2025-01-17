@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import React from 'react';
 
 const ProfileMenu = ({ user }) => {
@@ -10,30 +11,30 @@ const ProfileMenu = ({ user }) => {
       {/* User Info */}
       <div className="flex items-center gap-3 mb-4">
         <img
-          src={user.avatar}
+          src={user?.image}
           alt="User Avatar"
           className="w-12 h-12 rounded-full border-2 border-blue-500"
         />
         <div>
           <p className="text-gray-800 font-semibold text-lg">{user.name}</p>
-          <p className="text-gray-500 text-sm">Member</p>
+          <p className="text-gray-500 text-xs tracking-wide">{user.email}</p>
         </div>
       </div>
 
       {/* Links */}
-      <div className="space-y-2">
-        <a
+      <div className="space-y-2 text-sm">
+        <Link
           href="/add-listing"
           className="block text-blue-600 hover:text-blue-800 font-medium transition"
         >
           Add Listing
-        </a>
-        <a
+        </Link>
+        <Link
           href="/logout"
           className="block text-red-500 hover:text-red-700 font-medium transition"
         >
           Logout
-        </a>
+        </Link>
       </div>
     </div>
   );

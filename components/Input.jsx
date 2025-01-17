@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Eye, EyeOff } from "lucide-react"; // Import Eye and EyeOff icons
+import Label from "./Label";
 
 const Input = ({
   label,
@@ -18,20 +19,16 @@ const Input = ({
 
   return (
     <div className="flex flex-col w-full">
-      {label && (
-        <label htmlFor={name} className="text-gray-700 font-medium mb-2">
-          {label}
-        </label>
-      )}
+      <Label label={label} htmlFor={name}/>
       <div className="relative flex items-center">
         <input
           id={name}
           name={name}
           type={isPasswordVisible ? "text" : type} // Toggle between password and text type
           placeholder={placeholder}
-          className={`px-4 py-2 rounded-lg border w-full ${
+          className={`px-4 py-2 rounded-md border w-full ${
             error ? "border-red-500" : "border-gray-300"
-          } focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent ${type === "password" ? "pr-10" : ""}
+          } focus:outline-none  focus:border-slate-700 ${type === "password" ? "pr-10" : ""}
            ${className} `}
           {...props}
         />

@@ -5,13 +5,10 @@ import NavLinks from './header/NavLinks';
 import Sidebar from './header/Sidebar';
 import { Menu, X } from 'lucide-react'; // Importing hamburger and close icons
 
-const Navbar = () => {
+const Navbar = ({user}) => {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
 
   const toggleSidebar = () => setSidebarOpen(!isSidebarOpen);
-
-  // Temporary user state
-  const user = { isLoggedIn: false, name: 'Aditya Mishra', avatar: 'https://via.placeholder.com/150' };
 
   return (
     <nav className="bg-white p-4 shadow-md">
