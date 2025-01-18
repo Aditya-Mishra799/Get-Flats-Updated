@@ -5,10 +5,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import ProgressBar from "./ProgressBar";
 import Button from "../Button";
 
-const StepperForm = ({ stepsData = [], handleSaveForm, titleField, fetchCurrentPageData }) => {
+const StepperForm = ({
+  stepsData = [],
+  handleSaveForm,
+  titleField,
+  fetchCurrentPageData,
+}) => {
   const [currentStep, setCurrentStep] = useState(0);
-  const [pagesData, setPagesData] = useState({});
-  const [title, setTitle] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const methods = useForm({
     resolver: zodResolver(stepsData[currentStep].schema),
     mode: "onBlur",
@@ -16,36 +20,30 @@ const StepperForm = ({ stepsData = [], handleSaveForm, titleField, fetchCurrentP
 
   const isLastStep = currentStep === stepsData.length - 1;
 
-  useEffect(()=>{
-    const  fetchDefaultValues = async ()=>{
-      const {pageData, title, currentPage} = await fetchCurrentPageData(stepsData[currentStep].title)
-      methods.reset(pageData); 
-      setTitle(title)
-      if(currentPage !== 0)
-        setCurrentStep(currentPage + 1 || 0)
-    }
-    fetchDefaultValues()
-  }, [])
+  useEffect(() => {
+    const fetchDefaultValues = async () => {
+      const { pageData, currentPage } = await fetchCurrentPageData();
+      methods.reset(pageData);
+      setCurrentStep(currentPage + 1 || 0);
+    };
+    fetchDefaultValues();
+  }, []);
 
   const handleNext = async (e) => {
     e.preventDefault();
-    const values = methods.getValues();
-    if (values[titleField]) {
-      setTitle(values[titleField]);
+    setIsLoading(true)
+    try {
+      const values = methods.getValues();
+      const isValid = await methods.trigger();
+      if (isValid) {
+        await handleSaveForm(currentStep, values, values[titleField] || "");
+        setCurrentStep((prev) => prev + 1);
+      }
+    } catch (error) {
+      console.error(error)
     }
-    setPagesData((prev) => ({
-      ...prev,
-      [stepsData[currentStep].title]: values,
-    }));
-    Object.entries(values).map(([key, value]) => methods.setValue(key, value));
-    const isValid = await methods.trigger();
-    if (isValid) {
-      await handleSaveForm(
-        currentStep,
-        values,
-        title || values[titleField]
-      );
-      setCurrentStep((prev) => prev + 1);
+    finally{
+      setIsLoading(false)
     }
   };
 
@@ -55,7 +53,6 @@ const StepperForm = ({ stepsData = [], handleSaveForm, titleField, fetchCurrentP
 
   const handleFormSubmit = async (data) => {
     alert("Form submitted successfully!");
-    setPagesData((prev) => ({ ...prev, [stepsData[currentStep].title]: data }));
     setCurrentStep(0);
     methods.reset();
   };
@@ -102,7 +99,7 @@ const StepperForm = ({ stepsData = [], handleSaveForm, titleField, fetchCurrentP
           {isLastStep ? (
             <Button type="submit">Submit</Button>
           ) : (
-            <Button onClick={handleNext} type="button">
+            <Button onClick={handleNext} type="button" loading = {isLoading}>
               Next
             </Button>
           )}

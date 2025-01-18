@@ -188,22 +188,20 @@ const AddListingForm = ({ id, user }) => {
       console.error(error);
     }
   };
-  const fetchCurrentPageData = async (page) => {
+  const fetchCurrentPageData = async () => {
     try {
       if (id !== "new") {
         const res = await axios.get(`/api/forms/${id}`, {
-          params: { page: page },
         });
         return {
           pageData: res.data.pageData,
-          title: res?.data.title,
           currentPage: res?.data.currentPage,
         };
       }
-      return { pageData: {}, title: "", currentPage: 0 };
+      return { pageData: {}, currentPage: -1 };
     } catch (error) {
       console.error(error);
-      return { pageData: {}, title: "", currentPage : 0 }; // Consistent return structure
+      return { pageData: {}, currentPage : -1 }; // Consistent return structure
     }
   };
   return (

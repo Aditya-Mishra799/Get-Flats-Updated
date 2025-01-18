@@ -14,7 +14,7 @@ const formDataSchema = new mongoose.Schema(
     currentPage: { 
       type: Number, 
       required: true, 
-      default: 0
+      default: -1
     },
     data: { 
       type: Object, 
@@ -40,15 +40,14 @@ const formDataSchema = new mongoose.Schema(
   }
 );
 
-// formDataSchema.pre("save", async function (next){
-//   if(this.isSubmitted){
-//     await this.deleteOne()
-//   }else{
-//     console.log("Got a save")
-//     this.expiresAt = new Date(Date.now() + 2*24*60*60*1000); // reset expiry
-//     return next();
-//   }
-// })
+formDataSchema.pre("save", async function (next){
+  if(this.isSubmitted){
+    await this.deleteOne()
+  }else{
+    this.expiresAt = new Date(Date.now() + 2*24*60*60*1000); // reset expiry
+    return next();
+  }
+})
 
 // Index to enforce TTL for cleanup
 formDataSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });

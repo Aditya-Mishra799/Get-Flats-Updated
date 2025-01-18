@@ -28,6 +28,9 @@ export async function POST(req, res) {
 
       form.data = form.data || {};
       form.data = pageData; 
+      if(title){
+        form.title = title
+      }
       form.currentPage = Math.max(currentPage, form.currentPage)
       await form.save();
 
@@ -52,6 +55,7 @@ export async function POST(req, res) {
       title,
       type,
       data: {  ...pageData },
+      currentPage: 0,
     });
 
     await newForm.save();

@@ -6,12 +6,6 @@ export async function GET(req, {params}) {
   const  id =  (await params).id
   try {
     await connectToDB()
-    const url = new URL(req.url); 
-    // const currentPage = parseInt(url.searchParams.get('currentPage'))
-    // if (!currentPage || isNaN(currentPage) || currentPage < 0) {
-    //   return NextResponse.json({ error: "Page data not found" }, { status: 404 });
-    // }
-
     if (!id) {
       return NextResponse.json({ error: "ID is required" }, { status: 400 });
     }
@@ -22,7 +16,7 @@ export async function GET(req, {params}) {
     }
 
     // Return the specific page data
-    return NextResponse.json({ pageData: form.data, title : form.title, currentPage  : form.currentPage }, { status: 200 });
+    return NextResponse.json({ pageData: form.data, currentPage  : form.currentPage }, { status: 200 });
 
   } catch (error) {
     console.error(error);
