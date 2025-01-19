@@ -14,6 +14,10 @@ const ImageUploader = ({
   acceptedTypes = ["jpeg", "png", "jpg"],
   minSize = 10 * 1024, // Minimum size in bytes (10 KB)
   maxSize = 5 * 1024 * 1024, // Maximum size in bytes (5 MB)
+  
+  handleUpload,
+  handleDelete,
+  handleUplaodPending,
   ...props
 }) => {
   const inputRef = useRef(null);
@@ -50,7 +54,7 @@ const ImageUploader = ({
   const handleFiles = (files) => {
     const validFiles = validateFiles(files);
     if (validFiles.length) {
-      onChange([...value, ...validFiles]); // Add valid files to the current value
+      onChange([...value, ...validFiles]); 
     }
   };
 
