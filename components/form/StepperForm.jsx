@@ -24,10 +24,14 @@ const StepperForm = ({
     const fetchDefaultValues = async () => {
       const { pageData, currentPage } = await fetchCurrentPageData();
       methods.reset(pageData);
-      setCurrentStep(currentPage + 1 || 0);
+      setCurrentStep(Math.min(currentPage + 1, stepsData.length - 1) || 0);
     };
     fetchDefaultValues();
   }, []);
+
+  useEffect(()=>{
+
+  }, [])
 
   
   const handleNext = async (e) => {
@@ -49,13 +53,21 @@ const StepperForm = ({
   };
 
   const handlePrev = () => {
-    setCurrentStep((prev) => Math.max(prev - 1, 0)); // Go to previous step
+    setCurrentStep((prev) => Math.max(prev - 1, 0)); 
   };
 
   const handleFormSubmit = async (data) => {
-    alert("Form submitted successfully!");
-    setCurrentStep(0);
-    methods.reset();
+    setIsLoading(true)
+    try {
+      const values = methods.getValues();
+      await handleSaveForm(currentStep, values, values[titleField] || "");
+      setCurrentStep(0);
+    } catch (error) {
+      console.error(error)
+    }
+    finally{
+      setIsLoading(false)
+    }
   };
 
   return (

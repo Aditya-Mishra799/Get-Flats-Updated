@@ -1,7 +1,40 @@
+import { deleteObject, getUploadURL } from "@/server-actions/s3Actions";
+import axios from "axios";
 import { Upload } from "lucide-react";
-import React, { useRef, useState } from "react";
+import { Fascinate } from "next/font/google";
+import React, { useEffect, useReducer, useRef, useState } from "react";
+import FileCard from "./FileCard";
 import Label from "./Label";
 
+const filesReducer = (state, action) => {
+  switch (action.type) {
+    case "SET_ATTR":
+      const newSate = state.map((item) => {
+        if (action.id === item.id) {
+          return { ...item, [action.attr]: action.payload };
+        }
+        return item;
+      });
+      return newSate;
+    case "APPEND":
+      return [...state, action.payload];
+    case "REMOVE":
+      return [...state.filter((item) => action.id != item.id)];
+    case "FILL_WITH_VALUE":
+      return action.payload.map((key) => ({
+        name: key.split("/").at(-1),
+        s3Key: key,
+        isUploading: false,
+        cancelToken: null,
+        progress: 0,
+        id: Math.random().toString(36).substring(2, 9) + Date.now(),
+      }));
+    case "RESET":
+      return [];
+    default:
+      return state;
+  }
+};
 const ImageUploader = ({
   name,
   onChange,
@@ -14,27 +47,36 @@ const ImageUploader = ({
   acceptedTypes = ["jpeg", "png", "jpg"],
   minSize = 10 * 1024, // Minimum size in bytes (10 KB)
   maxSize = 5 * 1024 * 1024, // Maximum size in bytes (5 MB)
-  
-  handleUpload,
-  handleDelete,
-  handleUplaodPending,
+
   ...props
 }) => {
   const inputRef = useRef(null);
   const [dragging, setDragging] = useState(false);
   const [fileErrors, setFileErrors] = useState([]);
+  const [files, dispatchFiles] = useReducer(filesReducer, []);
 
   const handleClick = () => {
     if (inputRef.current) {
       inputRef.current.click();
     }
   };
+  useEffect(() => {
+    const newLinks = [];
+    files.forEach((file) => {
+      if (file?.s3Key) {
+        newLinks.push(file?.s3Key);
+      }
+    });
+    onChange(newLinks);
+  }, [files]);
 
-  const validateFiles = (files) => {
+  useEffect(() => {
+    dispatchFiles({ type: "FILL_WITH_VALUE", payload: value });
+  }, []);
+  const validateFiles = (inputFiles) => {
     const errors = [];
     const validFiles = [];
-
-    Array.from(files).forEach((file) => {
+    Array.from(inputFiles).forEach((file) => {
       const fileType = file.type.split("/")[1];
       if (!acceptedTypes.includes(fileType)) {
         errors.push(`${file.name}: Unsupported file type.`);
@@ -50,12 +92,95 @@ const ImageUploader = ({
     setFileErrors(errors);
     return validFiles;
   };
-
-  const handleFiles = (files) => {
-    const validFiles = validateFiles(files);
-    if (validFiles.length) {
-      onChange([...value, ...validFiles]); 
+  const startUploading = async (file) => {
+    const ID = Math.random().toString(36).substring(2, 9) + Date.now();
+    try {
+      const uploadUrlRequest = await getUploadURL(file.name, file.type, true);
+      if (!uploadUrlRequest.success) {
+        throw new Error(uploadUrlRequest.message);
+      }
+      const { uploadUrl, key } = uploadUrlRequest.data;
+      const cancelTokenSource = axios.CancelToken.source();
+      dispatchFiles({
+        type: "APPEND",
+        payload: {
+          s3Key: key,
+          cancelToken: cancelTokenSource,
+          isUploading: true,
+          name: file.name,
+          progress: 0,
+          id: ID,
+        },
+      });
+      await axios.put(uploadUrl, file, {
+        headers: { "Content-Type": file.type },
+        onUploadProgress: (event) => {
+          const currentProgress = Math.round(
+            (event.loaded * 100) / event.total
+          );
+          dispatchFiles({
+            type: "SET_ATTR",
+            attr: "progress",
+            payload: currentProgress,
+            id: ID,
+          });
+        },
+        cancelToken: cancelTokenSource.token,
+      });
+    } catch (error) {
+      if (axios.isCancel(error)) {
+        dispatchFiles({
+          type: "SET_ATTR",
+          attr: "s3Key",
+          payload: null,
+          id: ID,
+        });
+        dispatchFiles({
+          type: "SET_ATTR",
+          attr: "progress",
+          payload: 0,
+          id: ID,
+        });
+      } else {
+        console.error(error.message);
+      }
+    } finally {
+      dispatchFiles({
+        type: "SET_ATTR",
+        attr: "isUploading",
+        payload: false,
+        id: ID,
+      });
+      dispatchFiles({
+        type: "SET_ATTR",
+        attr: "cancelToken",
+        payload: null,
+        id: ID,
+      });
     }
+  };
+
+  const deleteFile = async ({ s3Key, id, isUploading }) => {
+    if (s3Key !== null && isUploading == false) {
+      try {
+        const deleteResponse = await deleteObject(s3Key);
+        if (!deleteResponse.success) {
+          throw new Error(deleteResponse.message);
+        }
+        dispatchFiles({ type: "REMOVE", id: id });
+      } catch (error) {
+        console.error(error.message);
+      }
+    }
+  };
+  const abortUploading = ({ cancelToken, s3Key, isUploading }) => {
+    if (s3Key !== null && cancelToken && isUploading === true) {
+      cancelToken.cancel();
+    }
+  };
+  const handleFiles = (inputFiles) => {
+    const validFiles = validateFiles(inputFiles);
+    validFiles.map((file) => startUploading(file));
   };
 
   const handleDrop = (e) => {
@@ -79,13 +204,16 @@ const ImageUploader = ({
     const files = e.target.files;
     handleFiles(files);
   };
-
   return (
     <div className="w-full space-y-2">
-       <Label label={label} htmlFor={name}/>
+      <Label label={label} htmlFor={name} />
       <div
         className={`flex flex-col justify-center items-center cursor-pointer border-2 border-dashed px-12 py-8 rounded-md transition-all duration-200 
-          ${dragging ? "bg-slate-100 border-slate-800" : "bg-white border-slate-600"}
+          ${
+            dragging
+              ? "bg-slate-100 border-slate-800"
+              : "bg-white border-slate-600"
+          }
           ${error || fileErrors.length ? "border-red-500" : ""} ${className}`}
         onClick={handleClick}
         onDragOver={(e) => e.preventDefault()}
@@ -109,24 +237,19 @@ const ImageUploader = ({
           file types.
         </p>
       </div>
-      {value.length > 0 && (
+      {files.length > 0 && (
         <div className="mt-4 flex flex-col flex-wrap gap-2">
-          {value.map((file, idx) => (
-            <div
-              key={idx}
-              className="flex items-center justify-between gap-2 border border-gray-300 rounded-md p-2 text-sm"
-            >
-              <span className="truncate max-w-xs">{file.name}</span>
-              <button
-                type="button"
-                onClick={() => {
-                  onChange(value.filter((_, i) => i !== idx));
-                }}
-                className="text-red-500 hover:text-red-700"
-              >
-                Remove
-              </button>
-            </div>
+          {files.map((file, idx) => (
+            <FileCard
+              key={file.name + idx}
+              name={file.name}
+              progress={file.progress}
+              s3Key={file.s3Key}
+              isUploading={file.isUploading}
+              onDelete={() => deleteFile(file)}
+              onAbort={() => abortUploading(file)}
+              onRestart={() => {}}
+            />
           ))}
         </div>
       )}

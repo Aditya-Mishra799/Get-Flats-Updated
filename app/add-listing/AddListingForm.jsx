@@ -125,7 +125,7 @@ const pages = {
   ],
   images: [
     {
-      name: "property_images",
+      name: "images",
       label: "Add Images",
       component: ImageUploader,
       className: "max-w-[400px]",
@@ -166,7 +166,7 @@ const AddListingForm = ({ id, user }) => {
       id: 4,
       title: "Propert Images",
       icon: <Image size={14} />,
-      schema: {},
+      schema:  stepSchemas.images,
       page: <Step fields={pages["images"]} />,
       note: "Review your information before submitting.",
     },

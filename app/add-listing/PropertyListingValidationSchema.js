@@ -11,10 +11,9 @@ const validateChoosenOption = (value, options) => {
 };
 //Schema for checking if a valid option is choosen from list of provided options
 const optionSchema = (options) =>
- z.string()
-    .refine((values) => validateChoosenOption(values, options), {
-      message: "The chosen option is not valid.",
-    });
+  z.string().refine((values) => validateChoosenOption(values, options), {
+    message: "The chosen option is not valid.",
+  });
 
 //validates if a string is number between min and max (inclusive of main and max)
 const validNumberSchema = (min, max = Infinity, message = null) => {
@@ -125,16 +124,25 @@ const stepSchemas = {
     construction_date: validDateSchema(),
     area: validNumberSchema(50, Infinity, "Area must be greater than 50 sqft."),
   }),
-  description : z.object({
+  description: z.object({
     property_description: z
-    .string()
-    .min(30, { message: "Description must have atleast 30 characters." })
-    .refine((str) => str != null && str != undefined && str != ""),
+      .string()
+      .min(30, { message: "Description must have atleast 30 characters." })
+      .refine((str) => str != null && str != undefined && str != ""),
   }),
-  pricingAndContacts : z.object({
+  pricingAndContacts: z.object({
     phone: phoneNumberSchema,
-  price: validNumberSchema(100, Infinity, "Price must be greater than 100 Rs."),
-  })
+    price: validNumberSchema(
+      100,
+      Infinity,
+      "Price must be greater than 100 Rs."
+    ),
+  }),
+  images: z.object({
+    images: z.array(z.string()).refine((arr) => arr.length > 0, {
+      message: "Must Provide 2 images thumbnail + 1.",
+    }),
+  }),
 };
 
 export default stepSchemas;

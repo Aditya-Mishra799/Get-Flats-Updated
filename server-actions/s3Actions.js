@@ -91,7 +91,7 @@ export const getViewURL = async (key) => {
   }
 };
 
-export const deleteFile = async (key) => {
+export const deleteObject = async (key) => {
   const command = new DeleteObjectCommand({
     Bucket: process.env.S3_BUCKET_NAME,
     Key: key,
