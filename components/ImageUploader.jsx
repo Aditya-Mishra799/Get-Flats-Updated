@@ -5,13 +5,14 @@ import { Fascinate } from "next/font/google";
 import React, { useEffect, useReducer, useRef, useState } from "react";
 import FileCard from "./FileCard";
 import Label from "./Label";
+import useApiHandler from "@/hooks/useApiHandler";
 
 const filesReducer = (state, action) => {
   switch (action.type) {
-    case "SET_ATTR":
+    case "UPDATE":
       const newSate = state.map((item) => {
         if (action.id === item.id) {
-          return { ...item, [action.attr]: action.payload };
+          return { ...item, ...action.payload };
         }
         return item;
       });
@@ -110,6 +111,7 @@ const ImageUploader = ({
           name: file.name,
           progress: 0,
           id: ID,
+          fileObject: file,
         },
       });
       await axios.put(uploadUrl, file, {
@@ -119,9 +121,8 @@ const ImageUploader = ({
             (event.loaded * 100) / event.total
           );
           dispatchFiles({
-            type: "SET_ATTR",
-            attr: "progress",
-            payload: currentProgress,
+            type: "UPDATE",
+            payload: { progress: currentProgress },
             id: ID,
           });
         },
@@ -129,32 +130,19 @@ const ImageUploader = ({
       });
     } catch (error) {
       if (axios.isCancel(error)) {
-        dispatchFiles({
-          type: "SET_ATTR",
-          attr: "s3Key",
-          payload: null,
-          id: ID,
-        });
-        dispatchFiles({
-          type: "SET_ATTR",
-          attr: "progress",
-          payload: 0,
-          id: ID,
-        });
+        console.log("Cancelled Forcefully", ID);
       } else {
         console.error(error.message);
       }
-    } finally {
       dispatchFiles({
-        type: "SET_ATTR",
-        attr: "isUploading",
-        payload: false,
+        type: "UPDATE",
+        payload: { s3Key: null, progress: 0 },
         id: ID,
       });
+    } finally {
       dispatchFiles({
-        type: "SET_ATTR",
-        attr: "cancelToken",
-        payload: null,
+        type: "UPDATE",
+        payload: { isUploading: false, cancelToken: null },
         id: ID,
       });
     }
@@ -162,6 +150,7 @@ const ImageUploader = ({
 
   const deleteFile = async ({ s3Key, id, isUploading }) => {
     if (s3Key !== null && isUploading == false) {
+      console.log("executed ", s3Key, id, isUploading);
       try {
         const deleteResponse = await deleteObject(s3Key);
         if (!deleteResponse.success) {
@@ -173,11 +162,70 @@ const ImageUploader = ({
       }
     }
   };
-  const abortUploading = ({ cancelToken, s3Key, isUploading }) => {
-    if (s3Key !== null && cancelToken && isUploading === true) {
-      cancelToken.cancel();
+
+  const restartUpload = async ({ id, fileObject, isUploading }) => {
+    if (!isUploading && fileObject) {
+      try {
+        const uploadUrlRequest = await getUploadURL(
+          fileObject.name,
+          fileObject.type,
+          true
+        );
+        if (!uploadUrlRequest.success) {
+          throw new Error(uploadUrlRequest.message);
+        }
+        const { uploadUrl, key } = uploadUrlRequest.data;
+        const cancelTokenSource = axios.CancelToken.source();
+        dispatchFiles({
+          type: "UPDATE",
+          id: id,
+          payload: {
+            cancelToken: cancelTokenSource,
+            s3Key: key,
+            isUploading: true,
+            fileObject: fileObject,
+            name: fileObject.name,
+            progress: 0,
+          },
+        });
+        await axios.put(uploadUrl, fileObject, {
+          onUploadProgress: (event) => {
+            const currentProgress = Math.round(
+              (event.loaded * 100) / event.total
+            );
+            dispatchFiles({
+              type: "UPDATE",
+              id: id,
+              payload: { progress: currentProgress },
+            });
+          },
+          cancelToken: cancelTokenSource.token,
+        });
+      } catch (error) {
+        if (axios.isCancel(error)) {
+          console.log("Cancelled Forcefully");
+        } else {
+          console.error(error.message);
+        }
+        dispatchFiles({
+          type: "UPDATE",
+          payload: { s3Key: null, progress: 0 },
+          id: id,
+        });
+      } finally {
+        dispatchFiles({
+          type: "UPDATE",
+          payload: { isUploading: false, cancelToken: null },
+          id: id,
+        });
+      }
     }
   };
+  // const abortUploading = ({ cancelToken, s3Key, isUploading }) => {
+  //   if (s3Key !== null && cancelToken && isUploading === true) {
+  //     cancelToken.cancel();
+  //   }
+  // };
   const handleFiles = (inputFiles) => {
     const validFiles = validateFiles(inputFiles);
     validFiles.map((file) => startUploading(file));
@@ -237,22 +285,24 @@ const ImageUploader = ({
           file types.
         </p>
       </div>
-      {files.length > 0 && (
-        <div className="mt-4 flex flex-col flex-wrap gap-2">
-          {files.map((file, idx) => (
-            <FileCard
-              key={file.name + idx}
-              name={file.name}
-              progress={file.progress}
-              s3Key={file.s3Key}
-              isUploading={file.isUploading}
-              onDelete={() => deleteFile(file)}
-              onAbort={() => abortUploading(file)}
-              onRestart={() => {}}
-            />
-          ))}
-        </div>
-      )}
+      <div className="mt-4 overflow-y-auto max-h-72">
+        {files.length > 0 && (
+          <div className="mt-4 flex flex-col flex-wrap gap-2 ">
+            {files.map((file, idx) => (
+              <FileCard
+                key={file.name + idx}
+                name={file.name}
+                progress={file.progress}
+                s3Key={file.s3Key}
+                isUploading={file.isUploading}
+                onDelete={() => deleteFile(file)}
+                id={file.id}
+                onRestart={() => restartUpload(file)}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

@@ -24,7 +24,7 @@ const ProfileMenu = ({ user }) => {
       {/* Links */}
       <div className="space-y-2 text-sm">
         <Link
-          href="/add-listing"
+          href="/add-listing/new"
           className="block text-blue-600 hover:text-blue-800 font-medium transition"
         >
           Add Listing

@@ -18,6 +18,7 @@ import TextArea from "@/components/TextArea";
 import ImageUploader from "@/components/ImageUploader";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import Map from "@/components/Map";
 
 const pages = {
   basicDetails: [
@@ -133,6 +134,16 @@ const pages = {
       fullWidth: true,
     },
   ],
+  location : [
+    {
+      name: "location",
+      label: "Add location",
+      component: Map,
+      className: "max-w-[400px]",
+      defaultValue: [],
+      fullWidth: true,
+    },
+  ]
 };
 
 const AddListingForm = ({ id, user }) => {
@@ -168,6 +179,14 @@ const AddListingForm = ({ id, user }) => {
       icon: <Image size={14} />,
       schema:  stepSchemas.images,
       page: <Step fields={pages["images"]} />,
+      note: "Review your information before submitting.",
+    },
+    {
+      id: 5,
+      title: "Location",
+      icon: <Image size={14} />,
+      schema:  {},
+      page: <Step fields={pages["location"]} />,
       note: "Review your information before submitting.",
     },
   ];
