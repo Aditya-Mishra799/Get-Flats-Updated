@@ -13,12 +13,19 @@ import {
 } from "@/data/ListingOptions";
 import SearchableSelect from "@/components/SearchableSelect";
 import SearchableMultiSelect from "@/components/SearchableMultiSelect";
-import { Contact, HousePlus, Image, MessageSquareText } from "lucide-react";
+import {
+  Contact,
+  HousePlus,
+  Image,
+  LocateIcon,
+  MessageSquareText,
+} from "lucide-react";
 import TextArea from "@/components/TextArea";
 import ImageUploader from "@/components/ImageUploader";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import Map from "@/components/Map";
+import { useToast } from "@/components/toast/ToastProvider";
 
 const pages = {
   basicDetails: [
@@ -134,7 +141,7 @@ const pages = {
       fullWidth: true,
     },
   ],
-  location : [
+  location: [
     {
       name: "location",
       label: "Add location",
@@ -143,11 +150,12 @@ const pages = {
       defaultValue: [],
       fullWidth: true,
     },
-  ]
+  ],
 };
 
 const AddListingForm = ({ id, user }) => {
-  const router = useRouter()
+  const router = useRouter();
+  const { addToast } = useToast();
   const stepsData = [
     {
       id: 1,
@@ -177,15 +185,15 @@ const AddListingForm = ({ id, user }) => {
       id: 4,
       title: "Propert Images",
       icon: <Image size={14} />,
-      schema:  stepSchemas.images,
+      schema: stepSchemas.images,
       page: <Step fields={pages["images"]} />,
       note: "Review your information before submitting.",
     },
     {
       id: 5,
       title: "Location",
-      icon: <Image size={14} />,
-      schema:  {},
+      icon: <LocateIcon size={14} />,
+      schema: {},
       page: <Step fields={pages["location"]} />,
       note: "Review your information before submitting.",
     },
@@ -200,18 +208,23 @@ const AddListingForm = ({ id, user }) => {
         title: title,
         type: "listing",
       });
-      if(res.data?.redirectUrl){
-        router.push(res.data?.redirectUrl)
+      addToast("info", "Form saved successfully, you can submit within 2 days");
+      if (res.data?.redirectUrl) {
+        router.push(res.data?.redirectUrl);
       }
     } catch (error) {
+      addToast("error", "Error while auto-saving form, try again!");
       console.error(error);
     }
   };
   const fetchCurrentPageData = async () => {
     try {
       if (id !== "new") {
-        const res = await axios.get(`/api/forms/${id}`, {
-        });
+        const res = await axios.get(`/api/forms/${id}`, {});
+        addToast(
+          "info",
+          "Your data has been auto-saved. You can continue where you left off."
+        );
         return {
           pageData: res.data.pageData,
           currentPage: res?.data.currentPage,
@@ -220,7 +233,8 @@ const AddListingForm = ({ id, user }) => {
       return { pageData: {}, currentPage: -1 };
     } catch (error) {
       console.error(error);
-      return { pageData: {}, currentPage : -1 }; // Consistent return structure
+      addToast("error", "Error while loading auto-saved form data");
+      return { pageData: {}, currentPage: -1 }; // Consistent return structure
     }
   };
   return (

@@ -1,30 +1,35 @@
-import { GoogleMap, LoadScript } from "@react-google-maps/api";
 import React from "react";
+import { GoogleMap, useLoadScript } from "@react-google-maps/api";
+import { useMemo } from "react";
 
 const containerStyle = {
   width: "100%",
   height: "400px",
 };
 
-const center = {
-  lat: 37.7749,
-  lng: -122.4194,
-};
-
 const Map = () => {
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
+  const { isLoaded, loadError } = useLoadScript({
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY,
+  });
 
-  if (!apiKey) {
-    console.error("Google Maps API Key is missing!");
-    return <div>Error: Google Maps API Key not found.</div>;
+  const center = useMemo(() => ({ lat: 18.52043, lng: 73.856743 }), []);
+
+  if (loadError) {
+    return <div>Error loading Google Maps</div>;
+  }
+
+  if (!isLoaded) {
+    return <div>Loading...</div>;
   }
 
   return (
-    <LoadScript googleMapsApiKey={apiKey}>
-      <GoogleMap mapContainerStyle={containerStyle} center={center} zoom={10}>
-        {/* Additional Map Features */}
-      </GoogleMap>
-    </LoadScript>
+    <div className="App w-full h-[400px]">
+      <GoogleMap
+        mapContainerStyle={containerStyle}
+        center={center}
+        zoom={10}
+      />
+    </div>
   );
 };
 
