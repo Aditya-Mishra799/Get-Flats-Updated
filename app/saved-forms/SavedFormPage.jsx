@@ -1,17 +1,16 @@
 "use client";
 import { useToast } from "@/components/toast/ToastProvider";
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import FormCard from "./FormCard";
 import NotFound from "@/public/not-found.svg";
 import Image from "next/image";
+import InfiniteScroll from "@/components/InfiniteScroll";
+import { getSavedForms } from "@/server-actions/savedFormAction";
+import LoadingFallback from "@/components/LoadingFallback";
 
-const SavedFormPage = ({ success, forms:initialForms  = []}) => {
-  const [forms, setForms] = useState(initialForms)
+const SavedFormPage = ({ success, forms: initialForms = [] }) => {
   const { addToast } = useToast();
-  const removeForm = (id) =>{
-    setForms(prev => prev.filter(item => item?._id !== id))
-  }
   useEffect(() => {
     if (!success) {
       addToast("error", "Please Login, to see saved forms");
@@ -30,19 +29,41 @@ const SavedFormPage = ({ success, forms:initialForms  = []}) => {
       </div>
     );
   }
-  if (Array.isArray(forms) && forms.length === 0) {
+  if (Array.isArray(initialForms) && initialForms.length === 0) {
     return (
       <div className="w-full h-screen text-center flex flex-col  items-center justify-center gap-4  text-base text-gray-700 tracking-wider">
-       <Image src = {NotFound} alt ="Not-found" width = {200} />
+        <Image src={NotFound} alt="Not-found" width={200} />
         <p>You have no saved forms </p>
       </div>
     );
   }
-  return <div className="flex flex-wrap gap-4">
-    {
-      forms.map(form => (<FormCard key = {form?._id} {...form} onDelete = {removeForm}/>))
+  const fetchSavedForms = useCallback(async (page, limit ) => {
+    try {
+      const formsResponse = await getSavedForms(page, limit);
+      if (!formsResponse.success) {
+        return [];
+      }
+      return formsResponse?.data?.forms;
+    } catch (error) {
+      addToast("error", error.message);
+      return [];
     }
-  </div>;
+  }, []);
+  return (
+    <div className="w-full h-full">
+      <InfiniteScroll
+        width="100%"
+        height="100vh"
+        scroll="vertical"
+        page={1}
+        fetchItems={fetchSavedForms}
+        Card = {FormCard}
+        cardProps = {{}}
+        loadingSkeleton = {<LoadingFallback />}
+        initialItems = {initialForms}
+      />
+    </div>
+  );
 };
 
 export default SavedFormPage;

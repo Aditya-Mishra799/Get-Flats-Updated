@@ -70,7 +70,7 @@ const FormCard = ({ title, _id, expiresAt, createdAt, onDelete}) => {
         <Button
           className=" px-2 py-1 text-sm"
           loadingText=""
-          loading={handleDeleteForm?.loading}
+          loading={handleDeleteForm?.apiState.loading}
           onClick={handleDeleteForm.execute}
         >
           <Trash size={14} />

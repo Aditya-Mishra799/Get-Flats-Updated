@@ -1,20 +1,21 @@
+import { appConfig } from "@/config/appConfig";
 import useApiHandler from "@/hooks/useApiHandler";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useToast } from "./toast/ToastProvider";
-
 const InfiniteScroll = ({
-  page = 0,
-  limit = 20,
+  page = 1,
+  limit = appConfig.paginationItemsPerPage,
   fetchItems,
-  cardProps,
+  cardProps = {},
   loadingSkeleton,
-  hasMore,
+  hasMore = true,
   Card,
   initialItems = [],
   width = "100%", // Default width
-  height = "400px", // Default height
+  height = "100%", // Default height
   scroll = "vertical", // Can be 'vertical' or 'horizontal'
   className,
+  reachedEndFallBack,
   ...props
 }) => {
   const [items, setItems] = useState(initialItems);
@@ -25,8 +26,14 @@ const InfiniteScroll = ({
     hasMore: true,
   });
 
+  const removeItem = useCallback((id) => {
+    setItems((prev) => prev.filter((item) => item?._id !== id));
+  }, []);
+
   const fetchMoreData = useApiHandler(async () => {
     try {
+      if (!paginationData.hasMore) return;
+      console.log(paginationData.currentPage + 1,)
       const newItems = await fetchItems(
         paginationData.currentPage + 1,
         paginationData.limit
@@ -52,7 +59,7 @@ const InfiniteScroll = ({
         scrollElement.scrollTop + scrollElement.clientHeight >=
         scrollElement.scrollHeight - 150
       ) {
-        if (!fetchMoreData.loading && hasMore) {
+        if (!fetchMoreData?.apiState?.loading && paginationData?.hasMore) {
           fetchMoreData.execute();
         }
       }
@@ -61,7 +68,7 @@ const InfiniteScroll = ({
         scrollElement.scrollLeft + scrollElement.clientWidth >=
         scrollElement.scrollWidth - 150
       ) {
-        if (!fetchMoreData.loading && hasMore) {
+        if (!fetchMoreData?.apiState?.loading && paginationData?.hasMore) {
           fetchMoreData.execute();
         }
       }
@@ -69,30 +76,48 @@ const InfiniteScroll = ({
   };
 
   useEffect(() => {
-    const scrollContainer = document.getElementById("infinite-scroll-container");
+    const scrollContainer = document.getElementById(
+      "infinite-scroll-container"
+    );
+    if (!scrollContainer || !paginationData.hasMore) return;
     scrollContainer?.addEventListener("scroll", handleScroll);
     return () => scrollContainer?.removeEventListener("scroll", handleScroll);
-  }, [fetchMoreData.loading, hasMore]);
+  }, [fetchMoreData?.apiState?.loading, paginationData.hasMore]);
 
   return (
     <div
       id="infinite-scroll-container"
-      className={`w-full h-full overflow-${scroll} ${className}`}
-      style={{ width, height, display: "flex", flexDirection: scroll === "vertical" ? "column" : "row", overflow: "auto" }}
+      className={`minimal-scroll  ${className} ${
+        scroll === "vertical"
+          ? "overflow-y-auto overflow-x-hidden"
+          : "overflow-x-auto overflow-y-hidden"
+      }`}
+      style={{ width, height }}
       {...props}
     >
-      {/* Show loading skeleton if there are no items and loading */}
-      {items.length === 0 && fetchMoreData.loading && loadingSkeleton}
-      
-      {/* Render the fetched items */}
-      {items.length > 0 && items.map((item, index) => (
-        <Card key={index} {...cardProps} {...item} />
-      ))}
+      <div
+        className={`w-full flex  ${
+          scroll === "vertical" ? "pr-2 flex-wrap" : "pb-2 items-center"
+        } gap-2 `}
+      >
+        {items.length === 0 &&
+          fetchMoreData?.apiState?.loading &&
+          loadingSkeleton}
 
-      {/* Render loading skeletons at the end if more items are loading */}
-      {fetchMoreData.loading && (
-        <div className="flex justify-center items-center">
-          {/* Loading indicator or skeleton here */}
+        {items.length > 0 &&
+          items.map((item, index) => (
+            <Card key={index} {...cardProps} {...item} onDelete = {removeItem}/>
+          ))}
+
+        {fetchMoreData?.apiState?.loading && (
+          <div className="flex justify-center items-center">
+            {loadingSkeleton}
+          </div>
+        )}
+      </div>
+      {(!paginationData.hasMore && reachedEndFallBack) && (
+        <div className="w-full h-full flex justify-center">
+          {reachedEndFallBack}
         </div>
       )}
     </div>
