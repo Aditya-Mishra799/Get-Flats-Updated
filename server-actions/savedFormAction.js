@@ -12,7 +12,7 @@ export const getSavedForms = async () => {
       return {
         success: false,
         message: "Unauthorized, login and try again",
-        error: error.message,
+        error: null,
         data: {},
       };
     }
@@ -21,11 +21,12 @@ export const getSavedForms = async () => {
       { userId: user.id, isSubmitted: false },
       { title: 1, createdAt: 1, expiresAt: 1 }
     )
-      .lean().exec()
-      const formsWithStringIds = forms.map(form => ({
-        ...form,
-        _id: form._id.toString(), 
-      }));
+      .lean()
+      .exec();
+    const formsWithStringIds = forms.map((form) => ({
+      ...form,
+      _id: form._id.toString(),
+    }));
     return {
       success: true,
       message: "Saved forms found",
@@ -35,7 +36,58 @@ export const getSavedForms = async () => {
   } catch (error) {
     return {
       success: false,
-      message: "Unauthorized, login and try again",
+      message: "Some error occurred, please try again!!!",
+      error: error.message,
+      data: {},
+    };
+  }
+};
+
+export const deleteSavedForm = async (id) => {
+  try {
+    const { user } = await getServerSession(authOptions);
+    console.log(user);
+    if (!user || !user?.id) {
+      return {
+        success: false,
+        message: "Unauthorized. Please log in and try again.",
+        error: null,
+        data: {},
+      };
+    }
+    await connectToDB();
+    let form = await FormData.findById(id, { userId: 1, title: 1 }).lean();
+    if (!form) {
+      return {
+        success: false,
+        message: "Form not found, please try again !!!",
+        error: null,
+        data: {},
+      };
+    }
+    form = { ...form, _id: form?._id.toString(), userId :  form?.userId.toString()};
+    if (form?.userId !== user?.id) {
+      return {
+        success: false,
+        message: "You are not authorized to delete this form.",
+        error: null,
+        data: {},
+      };
+    }
+    await FormData.findByIdAndDelete(id);
+    return {
+      success: true,
+      message: `Deleted form${
+        form.title ? ` titled "${form.title}"` : ""
+      }.`,
+      error: null,
+      data: { form },
+    };
+  } catch (error) {
+    console.error(error)
+    return {
+      success: false,
+      message: "An error occurred while deleting the form. Please try again.",
       error: error.message,
       data: {},
     };
