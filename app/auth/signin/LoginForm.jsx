@@ -9,21 +9,38 @@ import { LoginFormInputs, RegisterFormInputs } from "../formInput";
 import { LoginFormValidationSchema } from "@/FormValidationSchema/LoginUser";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import axios from "axios";
+import { useToast } from "@/components/toast/ToastProvider";
 
 
 const LoginForm = () => {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/";
-
+  const {addToast} = useToast()
+  const error = searchParams.get("error");
+  const errorMessages = {
+    CredentialsSignin: "Invalid email or password, make sure your email is verified",
+    AccessDenied: "Access denied. Please check your credentials and make sure your email is verified",
+    Configuration: "There was a configuration error. Please try again later.",
+    default: "An unknown error occurred. Please try again.",
+  };
+  useEffect(()=> {
+    if(error){
+      addToast("error", errorMessages[error])
+    }
+  }, [])
+ 
   const methods = useForm({
     mode: "onBlur",
     resolver: zodResolver(LoginFormValidationSchema),
   });
 
   const handleFormSubmit = async (data) => {
-    await signIn("credentials", { ...data,  callbackUrl});
-    methods.reset();
+    try {
+      const resp = await signIn("credentials", { ...data, callbackUrl });
+      methods.reset();
+    } catch (error) {
+      console.log("Error during login:", error);
+    }
   };
   return (
     <div className="bg-white px-6 py-8 rounded-md shadow-lg  max-w-[350px] md:max-w-[400px] lg:max-w-[420px] lg:px-12 lg:py-12">

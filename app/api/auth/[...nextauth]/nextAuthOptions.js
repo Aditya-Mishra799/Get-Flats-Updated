@@ -27,6 +27,9 @@ const authOptions = {
           if(!user){
             throw new Error("User not authorized. Email not found.");
           }
+          if(!user?.isVerified){
+            throw new Error("Please first verify your email to login.");
+          }
           const isPasswordValid = await user.comparePassword(password);
           if(!isPasswordValid){
             throw new Error("Invalid email or password.");
@@ -38,8 +41,8 @@ const authOptions = {
             picture : user.profileImageUrl,
           }
         } catch (error) {
+          return null
           console.error(error)
-          return null;
         }
       },
     }),

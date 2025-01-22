@@ -150,7 +150,6 @@ const ImageUploader = ({
 
   const deleteFile = async ({ s3Key, id, isUploading }) => {
     if (s3Key !== null && isUploading == false) {
-      console.log("executed ", s3Key, id, isUploading);
       try {
         const deleteResponse = await deleteObject(s3Key);
         if (!deleteResponse.success) {

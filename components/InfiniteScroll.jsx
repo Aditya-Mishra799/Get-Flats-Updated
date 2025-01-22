@@ -33,7 +33,6 @@ const InfiniteScroll = ({
   const fetchMoreData = useApiHandler(async () => {
     try {
       if (!paginationData.hasMore) return;
-      console.log(paginationData.currentPage + 1,)
       const newItems = await fetchItems(
         paginationData.currentPage + 1,
         paginationData.limit

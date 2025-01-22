@@ -7,7 +7,6 @@ import mongoose from "mongoose";
 import { getServerSession } from "next-auth";
 import authOptions from "@/app/api/auth/[...nextauth]/nextAuthOptions";
 import { appConfig } from "@/config/appConfig";
-import { isValid } from "zod";
 const puposeRouteMappiing = appConfig.purposeRouteMapping;
 
 const generateToken = async (purpose, userId, expiryInMinutes) => {
@@ -66,19 +65,16 @@ const generateToken = async (purpose, userId, expiryInMinutes) => {
   }
 };
 
-export const getVerificationLink = async (purpose) => {
+export const getVerificationLink = async (purpose, userId) => {
   try {
-    const { user } = await getServerSession(authOptions);
-    if (!user || !user?.id) {
-      throw new ClientError("Must Login to genertate a verification Link");
-    }
     const expiryTime = appConfig.emailVerificationLinkExpiry;
-    const tokenResponse = await generateToken(purpose, user.id, expiryTime);
+    const tokenResponse = await generateToken(purpose, userId, expiryTime);
     if (!tokenResponse.success) {
       throw new ClientError(tokenResponse.message || "Some error occurred");
     }
+    const redirectEndpoint = puposeRouteMappiing[purpose];
     const verificationLink = new URL(
-      "/api/verify",
+      redirectEndpoint,
       process.env.NEXT_PUBLIC_URL
     );
     verificationLink.searchParams.append("token", tokenResponse.data.token);
@@ -133,7 +129,7 @@ export const verfiyToken = async (token) => {
     }
     return {
       success: true,
-      message: "verifiacation link generated successfully",
+      message: "Token is valid",
       data: { payload },
     };
   } catch (error) {
@@ -191,7 +187,7 @@ export const consumeToken = async (token) => {
     }
   }
 };
-export const getRedirectURl = async (token) => {
+export const getRedirectUrl = async (token) => {
   try {
     const tokenResp = await verfiyToken(token);
     if (!tokenResp.success) {
@@ -200,9 +196,7 @@ export const getRedirectURl = async (token) => {
     const payload = tokenResp.data.payload;
     const redirectEndpoint = puposeRouteMappiing[payload?.purpose];
     const redirectUrl = new URL(redirectEndpoint, process.env.NEXT_PUBLIC_URL);
-    if (redirectEndpoint !== "/") {
-      redirectUrl.append("token", token);
-    }
+    redirectUrl.append("token", token);
 
     return {
       success: true,
