@@ -35,7 +35,7 @@ const Button = ({
       {/* Loader with transition */}
       {loading ? (
         <div className="flex items-center gap-2">
-          <Loader2 className="animate-spin w-5 h-5" size = {13}/>
+          <Loader2 className="animate-spin w-5 h-5" size = {12}/>
           { loadingText && (<span className="text-sm">{loadingText}</span>) }
         </div>
       ) : (
