@@ -4,7 +4,6 @@ export const changePassword = async (currentState, formData) => {
   try {
     const input = Object.fromEntries(formData.entries());
     const result = ResetPasswordSchema.safeParse(input);
-    console.log(input)
     if (!result.success) {
       const errors = {};
       result.error.errors.forEach((err) => (errors[err.path] = err.message));
